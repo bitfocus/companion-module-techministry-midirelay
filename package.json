@@ -1,0 +1,24 @@
+{
+  "name": "techministry-midirelay",
+  "version": "1.0.0",
+	"api_version": "1.0.0",
+	"keywords": [ "MIDI Relay" ],
+	"manufacturer": "Tech Ministry",
+	"product": "MIDI Relay",
+	"shortname": "midi-relay",
+	"description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitfocus/companion-module-techministry-midirelay.git"
+  },
+  "author": "Joseph Adams <josephdadams@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bitfocus/companion-module-techministry-midirelay/issues"
+  },
+  "homepage": "https://github.com/bitfocus/companion-module-techministry-midirelay#readme"
+}
