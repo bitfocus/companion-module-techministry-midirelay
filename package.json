@@ -1,12 +1,14 @@
 {
   "name": "techministry-midirelay",
-  "version": "1.0.0",
-	"api_version": "1.0.0",
-	"keywords": [ "MIDI Relay" ],
-	"manufacturer": "Tech Ministry",
-	"product": "MIDI Relay",
-	"shortname": "midi-relay",
-	"description": "",
+  "version": "1.0.1",
+  "api_version": "1.0.0",
+  "keywords": [
+    "MIDI Relay"
+  ],
+  "manufacturer": "Tech Ministry",
+  "product": "MIDI Relay",
+  "shortname": "midi-relay",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/bitfocus/companion-module-techministry-midirelay/issues"
   },
-  "homepage": "https://github.com/bitfocus/companion-module-techministry-midirelay#readme"
+  "homepage": "https://github.com/bitfocus/companion-module-techministry-midirelay#readme",
+  "dependencies": {
+    "mdns": "^2.5.0"
+  }
 }

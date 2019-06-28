@@ -1,5 +1,6 @@
 // TechMinistry-MIDIRelay
 
+const mdns = require('mdns');
 var instance_skel = require('../../instance_skel');
 var debug;
 var log;
@@ -9,11 +10,78 @@ function instance(system, id, config) {
 
 	// super-constructor
 	instance_skel.apply(this, arguments);
+	
+	const browser = mdns.createBrowser(mdns.tcp('midi-relay'));
+	
+	browser.on('serviceUp', service => {
+		// add the newly detected midi relay server to the list
+		
+		let mdnsObj = {};
+		
+		mdnsObj.name = service.name;
+		
+		for (let i = 0; i < service.addresses.length; i++) {
+			if ((service.addresses[i].indexOf(':') < 0) && (service.addresses[i].indexOf('.') > 0)) { //ipv4
+				mdnsObj.address = service.addresses[i];
+				break;
+			}
+		}
+		
+		mdnsObj.port = service.port;
+		
+		if (mdnsObj.address) { // if we picked up an ipv4 address
+			// first check to see if it's already in the list, and don't add it if so
+			let isFound = false;
+			
+			for (let i = 0; i < self.mdns_hosts.length; i++) {
+				if (self.mdns_hosts[i].address === mdnsObj.address) {
+					isFound = true;
+					self.mdns_hosts[i].name = mdnsObj.name;
+					self.mdns_hosts[i].port = mdnsObj.port;
+					break;
+				}
+			}
+			
+			if (!isFound) {
+				self.mdns_hosts.push(mdnsObj);
+				
+				let listObj = {};
+				listObj.id = mdnsObj.address;
+				listObj.label = mdnsObj.name + ' (' + mdnsObj.address + ')';
+				self.mdns_hosts_list.push(listObj);
+				self.config_fields(); //republish the config fields
+			}
+		}
+	});
+	
+	browser.on('serviceDown', service => {
+		// delete it from the list when the server goes down
+		let name = service.name;
+		self.mdns_hosts = self.mdns_hosts.filter(obj => obj.name !== name);
+		
+		// rebuild the config_fields list
+		self.mdns_hosts_list = [];
+		self.mdns_hosts_list.push({id: '0', label: '(manual entry)'});
+		for (let i = 0; i < self.mdns_hosts.length; i++) {
+			let listObj = {};
+			listObj.id = self.mdns_hosts[i].address;
+			listObj.label = self.mdns_hosts[i].name + ' (' + self.mdns_hosts[i].address + ')';
+			self.mdns_hosts_list.push(listObj);
+		}
+		self.config_fields(); // republish the config fields
+	});
+	
+	browser.start();
 
 	self.actions(); // export actions
-
+	
 	return self;
 }
+
+instance.prototype.mdns_hosts = [];
+instance.prototype.mdns_hosts_list = [
+	{id: '0', label: '(manual entry)'}
+];
 
 instance.prototype.MIDI_inputs = [];
 instance.prototype.MIDI_outputs = [];
@@ -180,47 +248,60 @@ instance.prototype.initModule = function () {
 	
 	self.MSC_deviceid = [];
 	
-	self.getRest('/midi_inputs', self.config.host, self.config.port).then(function(arrResult) {
-		if (arrResult[2].error) {
-			//throw an error
-			self.status(self.STATUS_ERROR, arrResult[2]);
+	if (self.config.detected_host !== '0') {
+		self.config.host = self.config.detected_host;
+		let mdnsObj = self.mdns_hosts.find(obj => obj.address === self.config.host);
+		if (mdnsObj.port) {
+			self.config.port = mdnsObj.port;
 		}
 		else {
-			self.MIDI_inputs = arrResult[2];
-			for (var i = 0; i < self.MIDI_inputs.length; i++) {
-				var listObj = {};
-				listObj.id = self.MIDI_inputs[i].name;
-				listObj.label = self.MIDI_inputs[i].name;
-				self.MIDI_inputs_list.push(listObj);
-			}
-			self.actions(); // export actions
+			self.config.port = 4000;
 		}
-	}).catch(function(arrResult) {
-		self.status(self.STATUS_ERROR, arrResult);
-		self.log('error', arrResult[0] + ':' + arrResult[1] + ' ' + arrResult[2]);
-	});
+	}
 	
-	self.getRest('/midi_outputs', self.config.host, self.config.port)
-	.then(function(arrResult) {
-		if (arrResult[2].error) {
-			//throw an error
-			self.status(self.STATUS_ERROR, arrResult[2]);
-		}
-		else {
-			self.MIDI_outputs = arrResult[2];
-			for (var i = 0; i < self.MIDI_outputs.length; i++) {
-				var listObj = {};
-				listObj.id = self.MIDI_outputs[i].name;
-				listObj.label = self.MIDI_outputs[i].name;
-				self.MIDI_outputs_list.push(listObj);
-			}			
-			self.actions(); // export actions
-		}
-	})
-	.catch(function(arrResult) {
-		self.status(self.STATUS_ERROR, arrResult);
-		self.log('error', arrResult[0] + ':' + arrResult[1] + ' ' + arrResult[2]);
-	});
+	if (self.config.host) {
+		self.getRest('/midi_inputs', self.config.host, self.config.port).then(function(arrResult) {
+			if (arrResult[2].error) {
+				//throw an error
+				self.status(self.STATUS_ERROR, arrResult[2]);
+			}
+			else {
+				self.MIDI_inputs = arrResult[2];
+				for (var i = 0; i < self.MIDI_inputs.length; i++) {
+					var listObj = {};
+					listObj.id = self.MIDI_inputs[i].name;
+					listObj.label = self.MIDI_inputs[i].name;
+					self.MIDI_inputs_list.push(listObj);
+				}
+				self.actions(); // export actions
+			}
+		}).catch(function(arrResult) {
+			self.status(self.STATUS_ERROR, arrResult);
+			self.log('error', arrResult[0] + ':' + arrResult[1] + ' ' + arrResult[2]);
+		});
+
+		self.getRest('/midi_outputs', self.config.host, self.config.port)
+		.then(function(arrResult) {
+			if (arrResult[2].error) {
+				//throw an error
+				self.status(self.STATUS_ERROR, arrResult[2]);
+			}
+			else {
+				self.MIDI_outputs = arrResult[2];
+				for (var i = 0; i < self.MIDI_outputs.length; i++) {
+					var listObj = {};
+					listObj.id = self.MIDI_outputs[i].name;
+					listObj.label = self.MIDI_outputs[i].name;
+					self.MIDI_outputs_list.push(listObj);
+				}			
+				self.actions(); // export actions
+			}
+		})
+		.catch(function(arrResult) {
+			self.status(self.STATUS_ERROR, arrResult);
+			self.log('error', arrResult[0] + ':' + arrResult[1] + ' ' + arrResult[2]);
+		});	
+	}
 
 	//build MIDI Channels list
 	for (let i = 0; i < 16; i++) {
@@ -270,6 +351,20 @@ instance.prototype.config_fields = function () {
 			width: 12,
 			label: 'Information',
 			value: 'You will need to have the MIDI Relay program running on the remote computer.'
+		},
+		{
+			type: 'dropdown',
+			id: 'detected_host',
+			label: 'Detected Hosts',
+			width: 4,
+			choices: self.mdns_hosts_list
+		},
+		{
+			type: 'text',
+			id: 'info',
+			width: 12,
+			label: 'Manual Entry',
+			value: 'You can manually specify a host/port if the server instance is not automatically detected.'
 		},
 		{
 			type: 'textinput',
