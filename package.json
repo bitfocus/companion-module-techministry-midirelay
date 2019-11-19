@@ -1,6 +1,6 @@
 {
   "name": "techministry-midirelay",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "api_version": "1.0.0",
   "keywords": [
     "MIDI Relay"
@@ -24,6 +24,5 @@
   },
   "homepage": "https://github.com/bitfocus/companion-module-techministry-midirelay#readme",
   "dependencies": {
-    "mdns": "^2.5.0"
   }
 }
