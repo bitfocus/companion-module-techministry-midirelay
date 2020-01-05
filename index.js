@@ -22,6 +22,7 @@ instance.prototype.MIDI_inputs_list = [];
 instance.prototype.MIDI_outputs_list = [];
 
 instance.prototype.MIDI_notes = [
+	{id: 0, label: '0 - unassigned'},
 	{id: 1, label: '1 - unassigned'},
 	{id: 2, label: '2 - unassigned'},
 	{id: 3, label: '3 - unassigned'},
