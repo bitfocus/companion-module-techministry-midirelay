@@ -15,10 +15,7 @@ function instance(system, id, config) {
 	return self;
 }
 
-instance.prototype.MIDI_inputs = [];
 instance.prototype.MIDI_outputs = [];
-
-instance.prototype.MIDI_inputs_list = [];
 instance.prototype.MIDI_outputs_list = [];
 
 instance.prototype.MIDI_notes = [
@@ -338,76 +335,62 @@ instance.prototype.updateConfig = function (config) {
 instance.prototype.initModule = function () {
 	var self = this;
 	
-	self.MIDI_inputs = [];
 	self.MIDI_outputs = [];
-	self.MIDI_inputs_list = [];
 	self.MIDI_outputs_list = [];
 	
 	self.MSC_deviceid = [];
 	
 	if (self.config.host) {
-		self.getRest('/midi_inputs', self.config.host, self.config.port).then(function(arrResult) {
-			if (arrResult[2].error) {
-				//throw an error
-				self.status(self.STATUS_ERROR, arrResult[2]);
-			}
-			else {
-				self.MIDI_inputs = arrResult[2];
-				for (var i = 0; i < self.MIDI_inputs.length; i++) {
-					var listObj = {};
-					listObj.id = self.MIDI_inputs[i].name;
-					listObj.label = self.MIDI_inputs[i].name;
-					self.MIDI_inputs_list.push(listObj);
-				}
-				self.actions(); // export actions
-			}
-		}).catch(function(arrResult) {
-			self.status(self.STATUS_ERROR, arrResult);
-			self.log('error', arrResult[0] + ':' + arrResult[1] + ' ' + arrResult[2]);
-		});
-
-		self.getRest('/midi_outputs', self.config.host, self.config.port)
-		.then(function(arrResult) {
-			if (arrResult[2].error) {
-				//throw an error
-				self.status(self.STATUS_ERROR, arrResult[2]);
-			}
-			else {
-				self.MIDI_outputs = arrResult[2];
+		let url_midi_outputs = self.makeUrl('/midi_outputs', self.config.host, self.config.port);
+		
+		self.system.emit('rest_get', url_midi_outputs, function(err, result) {
+			if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
+				// A successful response
+				let listObj = {};
+				self.MIDI_outputs = result.data;
 				for (var i = 0; i < self.MIDI_outputs.length; i++) {
-					var listObj = {};
+					listObj = {};
 					listObj.id = self.MIDI_outputs[i].name;
 					listObj.label = self.MIDI_outputs[i].name;
 					self.MIDI_outputs_list.push(listObj);
-				}			
+				}
+				
+				///build MIDI Show Control Device ID list
+				for (let i = 0; i < 112; i++) {
+					listObj = {};
+					listObj.id = i;
+					listObj.label = i + '';
+					self.MSC_deviceid.push(listObj);
+				}
+				for (let i = 1; i < 16; i++) {
+					listObj = {};
+					listObj.id = 'g' + i;
+					listObj.label = 'Group ' + i;
+					self.MSC_deviceid.push(listObj);
+				}
+				listObj = {};
+				listObj.id = 'all';
+				listObj.label = 'All Devices';
+				self.MSC_deviceid.push(listObj);
+
 				self.actions(); // export actions
+				
+				self.status(self.STATUS_OK);
+			} else {
+				// Failure
+				let errorMessage = '';
+				if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
+					errorMessage = `Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay running?`;
+				}
+				else {
+					errorMessage = `Error occurred getting MIDI ports.`;
+				}
+				
+				self.log('error', errorMessage);
+				self.status(self.STATUS_ERROR, errorMessage);
 			}
-		})
-		.catch(function(arrResult) {
-			self.status(self.STATUS_ERROR, arrResult);
-			self.log('error', arrResult[0] + ':' + arrResult[1] + ' ' + arrResult[2]);
-		});	
+		});
 	}
-	
-	///build MIDI Show Control Device ID list
-	for (let i = 0; i < 112; i++) {
-		let listObj = {};
-		listObj.id = i;
-		listObj.label = i + '';
-		self.MSC_deviceid.push(listObj);
-	}
-	for (let i = 1; i < 16; i++) {
-		let listObj = {};
-		listObj.id = 'g' + i;
-		listObj.label = 'Group ' + i;
-		self.MSC_deviceid.push(listObj);
-	}
-	let listObj = {};
-	listObj.id = 'all';
-	listObj.label = 'All Devices';
-	self.MSC_deviceid.push(listObj);
-	
-	self.actions(); // export actions
 };
 
 // Return config fields for web config
@@ -780,211 +763,119 @@ instance.prototype.action = function (action) {
 	var self = this;
 	var options = action.options;
 	
-	var host = self.config.host;
-	var port = self.config.port;
+	let host = self.config.host;
+	let port = self.config.port;
+	
+	let midiObj = null;
+	
+	let cmd_url = self.makeUrl('/sendmidi', self.config.host, self.config.port);
 
 	switch (action.action) {
 		case 'midi_noteon':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'noteon', channel: parseInt(options.channel)-1, note: parseInt(options.note), velocity: parseInt(options.velocity) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'noteon',
+				channel: parseInt(options.channel)-1,
+				note: parseInt(options.note),
+				velocity: parseInt(options.velocity)
+			};
 			break;
 		case 'midi_noteoff':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'noteoff', channel: parseInt(options.channel)-1, note: parseInt(options.note), velocity: parseInt(options.velocity) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'noteoff',
+				channel: parseInt(options.channel)-1,
+				note: parseInt(options.note),
+				velocity: parseInt(options.velocity)
+			};
 			break;
 		case 'aftertouch':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'aftertouch', channel: parseInt(options.channel)-1, note: parseInt(options.note), value: parseInt(options.value) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'aftertouch',
+				channel: parseInt(options.channel)-1,
+				note: parseInt(options.note),
+				value: parseInt(options.value)
+			};
 			break;
 		case 'cc':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'cc', channel: parseInt(options.channel)-1, controller: parseInt(options.controller), value: parseInt(options.value) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'cc',
+				channel: parseInt(options.channel)-1,
+				controller: parseInt(options.controller),
+				value: parseInt(options.value) 
+			};
 			break;
 		case 'pc':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'pc', channel: parseInt(options.channel)-1, value: parseInt(options.value) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'pc',
+				channel: parseInt(options.channel)-1,
+				value: parseInt(options.value)
+			};
 			break;
 		case 'pressure':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'pressure', channel: parseInt(options.channel)-1, value: parseInt(options.value) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'pressure',
+				channel: parseInt(options.channel)-1,
+				value: parseInt(options.value)
+			};
 			break;
 		case 'pitchbend':
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'pitchbend', channel: parseInt(options.channel)-1, value: parseInt(options.value) }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'pitchbend',
+				channel: parseInt(options.channel)-1,
+				value: parseInt(options.value)
+			};
 			break;
 		case 'msc_command':
-			self.postRest('/sendmidi', host, port,
-				{
-					midiport: options.midiport, 
-					midicommand: 'msc', 
-					deviceid: options.deviceid, 
-					commandformat: options.commandformat, 
-					command: options.command, 
-					cue: options.cue, 
-					cuelist: options.cuelist, 
-					cuepath: options.cuepath
-				}
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport, 
+				midicommand: 'msc', 
+				deviceid: options.deviceid, 
+				commandformat: options.commandformat, 
+				command: options.command, 
+				cue: options.cue, 
+				cuelist: options.cuelist, 
+				cuepath: options.cuepath
+			};
 			break;
 		case 'sysex':			
-			self.postRest('/sendmidi', host, port,
-				{ midiport: options.midiport, midicommand: 'sysex', message: options.message }
-			)
-			.then(function(arrResult) {
-				if (arrResult[2].error) {
-					//throw an error
-					self.status(self.STATUS_ERROR, arrResult[2].error);
-				}
-			})
-			.catch(function(arrResult) {
-				self.status(self.STATUS_ERROR, arrResult);
-			});
+			midiObj = {
+				midiport: options.midiport,
+				midicommand: 'sysex',
+				message: options.message
+			};
 			break;
 		default:
 			break;
 	}
-};
-
-instance.prototype.getRest = function(cmd, host, port) {
-	var self = this;
-	return self.doRest('GET', cmd, host, port, {});
-};
-
-instance.prototype.postRest = function(cmd, host, port, body) {
-	var self = this;
-	return self.doRest('POST', cmd, host, port, body);
-};
-
-instance.prototype.doRest = function(method, cmd, host, port, body) {
-	var self = this;
-	var url = self.makeUrl(cmd, host, port);
-
-	return new Promise(function(resolve, reject) {
-
-		function handleResponse(err, result) {
+	
+	if (midiObj !== null) {
+		self.system.emit('rest', cmd_url, midiObj, function(err, result) {
 			if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
 				// A successful response
-
-				var objJson = result.data;
-				
-				resolve([ host, port, objJson ]);
-
+				let infoMessage = `MIDI message sent ok: ${action.action}`;
+				self.log('info', infoMessage)
+				self.status(self.STATUS_OK);
 			} else {
-				// Failure. Reject the promise.
-				var message = 'Unknown error';
-
-				if (result !== undefined) {
-					if (result.response !== undefined) {
-						message = result.response.statusCode + ': ' + result.response.statusMessage;
-					} else if (result.error !== undefined) {
-						// Get the error message from the object if present.
-						message = result.error;
-					}
+				// Failure
+				let errorMessage = '';
+				if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
+					errorMessage = `Error occured sending MIDI message. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
 				}
-
-				reject([ host, port, message ]);
+				else {
+					errorMessage = `Error occurred sending MIDI message.`;
+				}
+				
+				self.log('error', errorMessage);
+				self.status(self.STATUS_ERROR, errorMessage);
 			}
-		}
-
-		switch(method) {
-			case 'POST':
-				self.system.emit('rest', url, body, function(err, result) {
-					handleResponse(err, result);
-				});
-				break;
-
-			case 'GET':
-				self.system.emit('rest_get', url, function(err, result) {
-					handleResponse(err, result);
-				});
-				break;
-
-			default:
-				throw new Error('Invalid method');
-
-		}
-
-	});
-
+		});
+	}
 };
 
 instance.prototype.makeUrl = function(cmd, host, port) {
