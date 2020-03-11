@@ -880,10 +880,10 @@ instance.prototype.action = function (action) {
 					// Failure
 					let errorMessage = '';
 					if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
-						errorMessage = `Error occured sending MIDI message. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
+						errorMessage = `Error occurred refreshing MIDI ports. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
 					}
 					else {
-						errorMessage = `Error occurred sending MIDI message.`;
+						errorMessage = `Error occurred refreshing MIDI ports.`;
 					}
 
 					self.log('error', errorMessage);
@@ -966,7 +966,7 @@ instance.prototype.action = function (action) {
 				// Failure
 				let errorMessage = '';
 				if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
-					errorMessage = `Error occured sending MIDI message. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
+					errorMessage = `Error occurred sending MIDI message. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
 				}
 				else {
 					errorMessage = `Error occurred sending MIDI message.`;
