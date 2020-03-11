@@ -1,17 +1,18 @@
 ## TechMinistry-MIDIRelay
 
-This module will allow you to send MIDI Channel Voice and MIDI Show Control messages to a listener on a remote machine which will then relay the MIDI message to the device.
+This module will allow you to send MIDI Channel Voice, MIDI Show Control, and SysEx messages via HTTP requests to a listener on a remote machine which will then relay the MIDI message to the selected MIDI port on that remote machine.
 
 ### Configuration
 * The remote device must be running MIDI Relay, a listener program that relays the MIDI commands on the remote machine/network.
-* The software can be downloaded from <http://www.github.com/josephdadams/midi-relay>.
-* Configure the instance with the IP address of the remote machine.
-* The module makes HTTP requests over port 4000.
+* The lister/server software can be downloaded from <http://www.github.com/josephdadams/midi-relay>.
+* Configure the instance with the IP address of the remote machine running the MIDI Relay listener/server.
+* The module makes HTTP requests over port 4000 by default.
 
-### To use the module
-Add an action to a button and choose the action you wish to use.
+### To Use The Module
+Each action requires you to select a MIDI port. The list of ports are the ports available on the computer running MIDI Relay. Depending on the action chosen, other parameters are shown that can be sent along with the MIDI message.
 
-**Available actions:**
+You can select from the following actions:
+
 * Send MIDI Note On
 * Send MIDI Note Off
 * Send Polyphonic Aftertouch
