@@ -332,7 +332,9 @@ instance.prototype.initModule = function () {
 	var self = this;
 	
 	self.MIDI_outputs = [];
-	self.MIDI_outputs_list = [];
+	self.MIDI_outputs_list = [
+		{id: '0', label: '(Select a MIDI Port)'}
+	];
 	
 	self.MSC_deviceid = [];
 	
