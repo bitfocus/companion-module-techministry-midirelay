@@ -440,6 +440,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -479,6 +480,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -518,6 +520,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -557,6 +560,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -596,6 +600,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -628,6 +633,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -660,6 +666,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -692,6 +699,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
@@ -744,6 +752,7 @@ instance.prototype.actions = function (system) {
 					label: 'MIDI Port',
 					id: 'midiport',
 					choices: self.MIDI_outputs_list,
+					default: '0',
 					tooltip: 'MIDI Port to control.'
 				},
 				{
