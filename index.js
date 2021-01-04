@@ -340,71 +340,73 @@ instance.prototype.initModule = function () {
 	
 	if (self.config.host) {
 		let url_midi_outputs = self.makeUrl('/midi_outputs', self.config.host, self.config.port);
-		
-		self.system.emit('rest_get', url_midi_outputs, function(err, result) {
-			if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
-				if (result.data) {
-					let listObj = {};
-					self.MIDI_outputs = result.data;
-					for (var i = 0; i < self.MIDI_outputs.length; i++) {
-						listObj = {};
-						listObj.id = self.MIDI_outputs[i].name;
-						listObj.label = self.MIDI_outputs[i].name;
-						self.MIDI_outputs_list.push(listObj);
-					}
 
-					///build MIDI Show Control Device ID list
-					for (let i = 0; i < 112; i++) {
+		try {
+			self.system.emit('rest_get', url_midi_outputs, function(err, result) {
+				if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
+					if (result.data) {
+						let listObj = {};
+						self.MIDI_outputs = result.data;
+						for (var i = 0; i < self.MIDI_outputs.length; i++) {
+							listObj = {};
+							listObj.id = self.MIDI_outputs[i].name;
+							listObj.label = self.MIDI_outputs[i].name;
+							self.MIDI_outputs_list.push(listObj);
+						}
+	
+						///build MIDI Show Control Device ID list
+						for (let i = 0; i < 112; i++) {
+							listObj = {};
+							listObj.id = i;
+							listObj.label = i + '';
+							self.MSC_deviceid.push(listObj);
+						}
+						for (let i = 1; i < 16; i++) {
+							listObj = {};
+							listObj.id = 'g' + i;
+							listObj.label = 'Group ' + i;
+							self.MSC_deviceid.push(listObj);
+						}
 						listObj = {};
-						listObj.id = i;
-						listObj.label = i + '';
+						listObj.id = 'all';
+						listObj.label = 'All Devices';
 						self.MSC_deviceid.push(listObj);
+	
+						self.actions(); // export actions
+						
+						self.status(self.STATUS_OK);
 					}
-					for (let i = 1; i < 16; i++) {
-						listObj = {};
-						listObj.id = 'g' + i;
-						listObj.label = 'Group ' + i;
-						self.MSC_deviceid.push(listObj);
+					else {
+						let errorMessage = 'The data returned did not contain a list of midi output ports. No ports will be available.';
+						self.log('error', errorMessage);
+						self.status(self.STATUS_ERROR, errorMessage);
 					}
-					listObj = {};
-					listObj.id = 'all';
-					listObj.label = 'All Devices';
-					self.MSC_deviceid.push(listObj);
-
-					self.actions(); // export actions
-					
-					self.status(self.STATUS_OK);
 				}
 				else {
-					let errorMessage = 'The data returned did not contain a list of midi output ports. No ports will be available.';
+					// Failure
+					let errorMessage = '';
+						if (result.error) {
+							if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
+								errorMessage = `Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay running?`;
+							}
+							else {
+								errorMessage = `Error occurred getting MIDI ports.`;
+							}
+						}
+						else {
+							errorMessage = `An unknowm error occured in the midi-relay module. Is midi-relay running on the server?`;
+						}
+											
 					self.log('error', errorMessage);
 					self.status(self.STATUS_ERROR, errorMessage);
 				}
-			}
-			else {
-				// Failure
-				let errorMessage = '';
-				try {
-					if (result.error) {
-						if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
-							errorMessage = `Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay running?`;
-						}
-						else {
-							errorMessage = `Error occurred getting MIDI ports.`;
-						}
-					}
-					else {
-						errorMessage = `An unknowm error occured in the midi-relay module. Is midi-relay running on the server?`;
-					}
-				}
-				catch (error) {
-					errorMessage = `An error occured in the midi-relay module.`;
-				}
-				
-				self.log('error', errorMessage);
-				self.status(self.STATUS_ERROR, errorMessage);
-			}
-		});
+			});
+		}
+		catch(error) {
+			let errorMessage = 'Error occurred getting MIDI output ports.';
+			self.log('error', errorMessage);
+			self.status(self.STATUS_ERROR, errorMessage);
+		}
 	}
 };
 
@@ -880,26 +882,125 @@ instance.prototype.action = function (action) {
 		case 'refresh':
 			midiObj = null;
 			let url_refresh = self.makeUrl('/refresh', self.config.host, self.config.port);
-			self.system.emit('rest_get', url_refresh, function(err, result) {
+			try {
+				self.system.emit('rest_get', url_refresh, function(err, result) {
+					if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
+						// A successful response
+						let infoMessage = '';
+						let error = false;
+	
+						if (result.data.result) {
+							if (result.data.result === 'ports-refreshed-successfully') {
+								infoMessage = 'MIDI Input/Output ports were refreshed and updated successfully.';
+								self.initModule();
+							}
+							else {
+								infoMessage = 'Error occurred refreshing MIDI ports.';
+								error = true;
+							}
+						}
+						else {
+							infoMessage = 'Error refreshing MIDI ports.';
+							error = true;
+						}					
+						
+						if (error) {			
+							self.log('error', infoMessage);
+							self.status(self.STATUS_ERROR, infoMessage);
+						}
+						else {
+							self.log('info', infoMessage)
+							self.status(self.STATUS_OK);
+						}
+					}
+					else {
+						// Failure
+						let errorMessage = '';
+						if (result.error) {
+							if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
+								errorMessage = `Error occurred refreshing MIDI ports. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
+							}
+							else {
+								errorMessage = `Error occurred refreshing MIDI ports.`;
+							}
+						}
+						else {
+							errorMessage = 'Error occurred refreshing MIDI ports.';
+						}
+	
+						self.log('error', errorMessage);
+						self.status(self.STATUS_ERROR, errorMessage);
+					}
+				});
+			}
+			catch(error) {
+				let errorMessage = 'Error occurred refreshing MIDI ports.';
+				self.log('error', errorMessage);
+				self.status(self.STATUS_ERROR, errorMessage);
+			}
+		default:
+			break;
+	}
+	
+	if (midiObj !== null) {
+		try {
+			self.system.emit('rest', cmd_url, midiObj, function(err, result) {
 				if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
 					// A successful response
 					let infoMessage = '';
 					let error = false;
-
+					
 					if (result.data.result) {
-						if (result.data.result === 'ports-refreshed-successfully') {
-							infoMessage = 'MIDI Input/Output ports were refreshed and updated successfully.';
-							self.initModule();
-						}
-						else {
-							infoMessage = 'Error occurred refreshing MIDI ports.';
-							error = true;
-						}
+						switch(result.data.result) {
+							case 'noteon-sent-successfully':
+								infoMessage = 'The Note On message was sent successfully.';
+								break;
+							case 'noteoff-sent-successfully':
+								infoMessage = 'The Note Off message was sent successfully.';
+								break;
+							case 'aftertouch-sent-successfully':
+								infoMessage = 'The Polyphonic Aftertouch message was sent successfully.';
+								break;
+							case 'cc-sent-successfully':
+								infoMessage = 'The Control Change message was sent successfully.';
+								break;
+							case 'pc-sent-successfully':
+								infoMessage = 'The Program Change message was sent successfully.';
+								break;
+							case 'pressure-sent-successfully':
+								infoMessage = 'The Channel Pressure / Aftertouch message was sent successfully.';
+								break;
+							case 'pitchbend-sent-successfully':
+								infoMessage = 'The Pitch Bend message was sent successfully.';
+								break;
+							case 'msc-sent-successfully':
+								infoMessage = 'The MSC (MIDI Show Control) message was sent successfully.';
+								break;
+							case 'sysex-sent-successfully':
+								infoMessage = 'The SysEx MIDI message was sent successfully.';
+								break;
+							case 'invalid-midi-port':
+								infoMessage = 'The MIDI port you specified is invalid or is no longer available.';
+								error = true;
+								break;
+							case 'invalid-midi-command':
+								infoMessage = 'The MIDI command you sent is invalid or not implemented.';
+								error = true;
+								break;
+							case 'could-not-open-midi-out':
+								infoMessage = 'The specified MIDI-Out port could not be opened. The message was not sent.';
+								error = true;
+								break;
+							case 'error':
+								infoMessage = 'MIDI Relay Error: ' + result.error;
+								error = true;
+								break;
+							default:
+								infoMessage = 'Unexpected MIDI Relay Response: ' + result.result;
+								error = true;
+								break;
+						}	
 					}
-					else {
-						infoMessage = 'Error refreshing MIDI ports.';
-						error = true;
-					}					
 					
 					if (error) {			
 						self.log('error', infoMessage);
@@ -913,108 +1014,23 @@ instance.prototype.action = function (action) {
 				else {
 					// Failure
 					let errorMessage = '';
-					if (result.error) {
-						if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
-							errorMessage = `Error occurred refreshing MIDI ports. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
-						}
-						else {
-							errorMessage = `Error occurred refreshing MIDI ports.`;
-						}
+					if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
+						errorMessage = `Error occurred sending MIDI message. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
 					}
 					else {
-						errorMessage = 'Error occurred refreshing MIDI ports.';
+						errorMessage = `Error occurred sending MIDI message.`;
 					}
-
+					
 					self.log('error', errorMessage);
 					self.status(self.STATUS_ERROR, errorMessage);
 				}
 			});
-		default:
-			break;
-	}
-	
-	if (midiObj !== null) {
-		self.system.emit('rest', cmd_url, midiObj, function(err, result) {
-			if (err === null && typeof result === 'object' && result.response.statusCode === 200) {
-				// A successful response
-				let infoMessage = '';
-				let error = false;
-				
-				if (result.data.result) {
-					switch(result.data.result) {
-						case 'noteon-sent-successfully':
-							infoMessage = 'The Note On message was sent successfully.';
-							break;
-						case 'noteoff-sent-successfully':
-							infoMessage = 'The Note Off message was sent successfully.';
-							break;
-						case 'aftertouch-sent-successfully':
-							infoMessage = 'The Polyphonic Aftertouch message was sent successfully.';
-							break;
-						case 'cc-sent-successfully':
-							infoMessage = 'The Control Change message was sent successfully.';
-							break;
-						case 'pc-sent-successfully':
-							infoMessage = 'The Program Change message was sent successfully.';
-							break;
-						case 'pressure-sent-successfully':
-							infoMessage = 'The Channel Pressure / Aftertouch message was sent successfully.';
-							break;
-						case 'pitchbend-sent-successfully':
-							infoMessage = 'The Pitch Bend message was sent successfully.';
-							break;
-						case 'msc-sent-successfully':
-							infoMessage = 'The MSC (MIDI Show Control) message was sent successfully.';
-							break;
-						case 'sysex-sent-successfully':
-							infoMessage = 'The SysEx MIDI message was sent successfully.';
-							break;
-						case 'invalid-midi-port':
-							infoMessage = 'The MIDI port you specified is invalid or is no longer available.';
-							error = true;
-							break;
-						case 'invalid-midi-command':
-							infoMessage = 'The MIDI command you sent is invalid or not implemented.';
-							error = true;
-							break;
-						case 'could-not-open-midi-out':
-							infoMessage = 'The specified MIDI-Out port could not be opened. The message was not sent.';
-							error = true;
-							break;
-						case 'error':
-							infoMessage = 'MIDI Relay Error: ' + result.error;
-							error = true;
-							break;
-						default:
-							infoMessage = 'Unexpected MIDI Relay Response: ' + result.result;
-							error = true;
-							break;
-					}	
-				}
-				
-				if (error) {			
-					self.log('error', infoMessage);
-					self.status(self.STATUS_ERROR, infoMessage);
-				}
-				else {
-					self.log('info', infoMessage)
-					self.status(self.STATUS_OK);
-				}
-			}
-			else {
-				// Failure
-				let errorMessage = '';
-				if (result.error.toString().indexOf('ECONNREFUSED') > -1) {
-					errorMessage = `Error occurred sending MIDI message. Unable to reach midi-relay server at ${self.config.host} (${self.config.port}). Is midi-relay still running?`;
-				}
-				else {
-					errorMessage = `Error occurred sending MIDI message.`;
-				}
-				
-				self.log('error', errorMessage);
-				self.status(self.STATUS_ERROR, errorMessage);
-			}
-		});
+		}
+		catch(error) {
+			let errorMessage = 'Error occurred sending MIDI message.';
+			self.log('error', errorMessage);
+			self.status(self.STATUS_ERROR, errorMessage);
+		}
 	}
 };
 
