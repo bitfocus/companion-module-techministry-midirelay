@@ -46,6 +46,17 @@ module.exports = {
 				regex: Regex.Port
 			},
 			{
+				type: 'dropdown',
+				id: 'protocol',
+				label: 'Protocol Version',
+				width: 6,
+				default: '3',
+				choices: [
+					{ id: '2', label: 'midi-relay 2.x or less' },
+					{ id: '3', label: 'mid-relay 3.x or greater' }
+				],
+			},
+			{
 				type: 'static-text',
 				id: 'dummy1',
 				width: 12,

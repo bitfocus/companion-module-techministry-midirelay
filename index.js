@@ -10,6 +10,7 @@ const variables = require('./src/variables')
 const presets = require('./src/presets')
 
 const io = require('socket.io-client');
+const axios = require('axios');
 
 class midirelayInstance extends InstanceBase {
 	constructor(internal) {
@@ -384,67 +385,72 @@ class midirelayInstance extends InstanceBase {
 		let self = this;
 
 		if (this.config.host) {
-			this.log('info', `Opening connection to midi-relay: ${this.config.host}:${this.config.port}`);
-	
-			this.socket = io.connect('http://' + this.config.host + ':' + this.config.port, {reconnection: true});
-			this.log('info', 'Connecting to midi-relay...');
-			this.STATUS.information = 'Connecting to midi-relay';
-			this.checkVariables();
-	
-			// Add listeners
-			this.socket.on('connect', function() { 
-				self.log('info', 'Connected to midi-relay. Retrieving data.');
-				self.updateStatus(InstanceStatus.Ok);
-				self.STATUS.information = 'Connected';
-				self.sendCommand('version', null, null);
-				self.sendCommand('midi_outputs', null, null);
-				self.checkVariables();
-				self.getState();
-			});
-	
-			this.socket.on('disconnect', function() { 
-				self.updateStatus(InstanceStatus.ConnectionFailure);
-				self.log('error', 'Disconnected from midi-relay.');
-				self.STATUS.information = 'Disconnected';
-				self.checkVariables();
-			});
-	
-			this.socket.on('version', function(version) {
-				self.STATUS.version = version;
-				self.checkVariables();
-			});
-
-			this.socket.on('midi_outputs', function(midi_outputs) {
-				let outputsList = []
-				for (let i = 0; i < midi_outputs.length; i++) {
-					outputsList.push({ id: midi_outputs[i].name, label: `${midi_outputs[i].name}` });
-				}
-				self.MIDI_outputs = midi_outputs;
-				self.MIDI_outputs_list = outputsList;
-				self.initActions();
-				self.checkVariables();
-			});
-	
-			this.socket.on('control_status', function(status) {
-				self.STATUS.controlStatus = status;
-				if (status == false) {
-					self.updateStatus(InstanceStatus.UnknownWarning);
-					self.STATUS.information = 'Control has been disabled via midi-relay.';
-					self.log('warning', 'Control has been disabled via midi-relay.');
-				}
-				else {
+			if (this.config.protocol == '3') {
+				this.log('info', `Opening connection to midi-relay: ${this.config.host}:${this.config.port}`);
+		
+				this.socket = io.connect('http://' + this.config.host + ':' + this.config.port, {reconnection: true});
+				this.log('info', 'Connecting to midi-relay...');
+				this.STATUS.information = 'Connecting to midi-relay';
+				this.checkVariables();
+		
+				// Add listeners
+				this.socket.on('connect', function() { 
+					self.log('info', 'Connected to midi-relay. Retrieving data.');
 					self.updateStatus(InstanceStatus.Ok);
-					self.STATUS.information = 'Control has been enabled via midi-relay.';
-					self.log('info', 'Control has been enabled via midi-relay.');
-				}
-				self.checkVariables();
-				self.checkFeedbacks();
-			});
-	
-			this.socket.on('error', function(error) {
-				self.updateStatus(InstanceStatus.ConnectionFailure);
-				self.log('error', 'Error from midi-relay: ' + error);
-			});
+					self.STATUS.information = 'Connected';
+					self.sendCommand('version', null, null);
+					self.sendCommand('midi_outputs', null, null);
+					self.checkVariables();
+					self.getState();
+				});
+		
+				this.socket.on('disconnect', function() { 
+					self.updateStatus(InstanceStatus.ConnectionFailure);
+					self.log('error', 'Disconnected from midi-relay.');
+					self.STATUS.information = 'Disconnected';
+					self.checkVariables();
+				});
+		
+				this.socket.on('version', function(version) {
+					self.STATUS.version = version;
+					self.checkVariables();
+				});
+
+				this.socket.on('midi_outputs', function(midi_outputs) {
+					let outputsList = []
+					for (let i = 0; i < midi_outputs.length; i++) {
+						outputsList.push({ id: midi_outputs[i].name, label: `${midi_outputs[i].name}` });
+					}
+					self.MIDI_outputs = midi_outputs;
+					self.MIDI_outputs_list = outputsList;
+					self.initActions();
+					self.checkVariables();
+				});
+		
+				this.socket.on('control_status', function(status) {
+					self.STATUS.controlStatus = status;
+					if (status == false) {
+						self.updateStatus(InstanceStatus.UnknownWarning);
+						self.STATUS.information = 'Control has been disabled via midi-relay.';
+						self.log('warning', 'Control has been disabled via midi-relay.');
+					}
+					else {
+						self.updateStatus(InstanceStatus.Ok);
+						self.STATUS.information = 'Control has been enabled via midi-relay.';
+						self.log('info', 'Control has been enabled via midi-relay.');
+					}
+					self.checkVariables();
+					self.checkFeedbacks();
+				});
+		
+				this.socket.on('error', function(error) {
+					self.updateStatus(InstanceStatus.ConnectionFailure);
+					self.log('error', 'Error from midi-relay: ' + error);
+				});
+			}
+			else {
+				this.log('debug', 'Using protocol for midi-relay v2');
+			}
 		}
 	}
 	
@@ -452,30 +458,47 @@ class midirelayInstance extends InstanceBase {
 		this.sendCommand('midi_outputs');
 	}
 
-	sendCommand(cmd, arg1 = null, arg2 = null) {	
-		if (this.socket !== undefined) {
-			if (this.config.verbose) {
-				this.log('info', 'Sending: ' + cmd);
-			}
-	
-			if (arg1 !== null) {
-				if (arg2 !== null) {
-					this.socket.emit(cmd, arg1, arg2);
+	sendCommand(cmd, arg1 = null, arg2 = null) {
+		if (this.config.verbose) {
+			this.log('info', 'Sending: ' + cmd);
+		}
+
+		if (this.config.protocol == '3') {
+			if (this.socket !== undefined) {		
+				if (arg1 !== null) {
+					if (arg2 !== null) {
+						this.socket.emit(cmd, arg1, arg2);
+					}
+					else {
+						this.socket.emit(cmd, arg1);
+					}
 				}
 				else {
-					this.socket.emit(cmd, arg1);
+					this.socket.emit(cmd);
 				}
 			}
 			else {
-				this.socket.emit(cmd);
+				debug('Unable to send: Not connected to midi-relay.');
+		
+				if (this.config.verbose) {
+					this.log('warn', 'Unable to send: Not connected to midi-relay.');
+				}
 			}
 		}
 		else {
-			debug('Unable to send: Not connected to midi-relay.');
-	
-			if (this.config.verbose) {
-				this.log('warn', 'Unable to send: Not connected to midi-relay.');
+			//use the old REST API
+			let self = this;
+			let url = 'http://' + this.config.host + ':' + this.config.port + '/' + cmd;
+			if (arg1 !== null) {
+				url += '/' + arg1;
 			}
+			if (arg2 !== null) {
+				url += '/' + arg2;
+			}
+			if (this.config.verbose) {
+				this.log('info', 'Sending: ' + url);
+			}
+			axios({method: 'post', url: url, data: arg1});
 		}
 	};
 }
