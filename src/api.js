@@ -85,8 +85,8 @@ module.exports = {
 				self.socket.on('midi_back', function(midiObj) {
 					if (self.config.midiPort == midiObj.midiport) { //only care about the midi port we are listening to
 						self.midiObj = midiObj;
+						let channel = midiObj.channel + 1;
 
-						let channel = midiObj.channel++;
 						if (channel == self.config.midiChannel || self.config.ignoreMidiChannels) {
 							self.STATUS.lastMidiDateTime = new Date();
 							self.STATUS.lastMidiCommand = midiObj.midicommand || '';

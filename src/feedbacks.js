@@ -105,11 +105,8 @@ module.exports = {
 				if (self.midiObj) {
 					let channel = opt.midichannel - 1;
 
-					if (self.midiObj.midiport == opt.midiport && self.midiObj.midicommand == opt.midicommand && self.midiObj.channel == channel) {
-						console.log('made it here');
-	
+					if (self.midiObj.midiport == opt.midiport && self.midiObj.midicommand == opt.midicommand && self.midiObj.channel == channel) {	
 						if (opt.midicommand == 'noteon' || opt.midicommand == 'noteoff') {
-							console.log('and here');
 							if (self.midiObj.note == opt.note && self.midiObj.velocity == opt.velocity) {
 								return true;
 							}
