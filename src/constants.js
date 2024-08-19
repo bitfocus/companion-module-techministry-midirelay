@@ -13,7 +13,7 @@ module.exports = {
 		{id: 10, label: '10 - unassigned', note: '10'},
 		{id: 11, label: '11 - unassigned', note: '11'},
 		{id: 12, label: '12 - unassigned', note: '12'},
-		{id: 13, label: '13 - unassigned', note: '113'},
+		{id: 13, label: '13 - unassigned', note: '13'},
 		{id: 14, label: '14 - unassigned', note: '14'},
 		{id: 15, label: '15 - unassigned', note: '15'},
 		{id: 16, label: '16 - unassigned', note: '16'},
