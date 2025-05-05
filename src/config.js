@@ -114,7 +114,7 @@ module.exports = {
 				type: 'checkbox',
 				id: 'useAsSurface',
 				label: 'Use MIDI Feedback as a Companion Satellite Surface',
-				tooltip: 'With this option, the first 32 keys of the channel starting at the note offset will be automatically assigned as surface keys. NoteOn at any velocity will trigger the key, and NoteOff will release it.',
+				tooltip: 'With this option, the first keys of the channel starting at the note offset will be automatically assigned as surface keys. NoteOn at any velocity will trigger the key, and NoteOff will release it.',
 				width: 2,
 				default: false,
 				isVisible: (config) => config.useMidiFeedback == true
@@ -136,6 +136,16 @@ module.exports = {
 				default: 21,
 				min: 0,
 				max: 95,
+				isVisible: (config) => config.useAsSurface == true,
+			},
+			{
+				type: 'number',
+				id: 'maxKeys',
+				label: 'How many keys to use as buttons (>1)',
+				width: 2,
+				default: 32,
+				min: 1,
+				max: 256,
 				isVisible: (config) => config.useAsSurface == true,
 			},
 			{

@@ -80,11 +80,11 @@ module.exports = {
 					let productName = 'TechMinistry midi-relay';
 					if (self.config.useAllChannelsAsSurfaces) {
 						for (let i = 1; i <= 16; i++) {
-							self.sendCompanionSatelliteCommand(`ADD-DEVICE DEVICEID=${self.DEVICEID}-ch${i.toString().padStart(2, '0')} PRODUCT_NAME="${productName}" BITMAPS=false COLORS=false TEXT=false`);
+							self.sendCompanionSatelliteCommand(`ADD-DEVICE DEVICEID=${self.DEVICEID}-ch${i.toString().padStart(2, '0')} PRODUCT_NAME="${productName}" KEYS_TOTAL=${self.config.maxKeys} BITMAPS=false COLORS=false TEXT=false`);
 						}
 					}
 					else {
-						self.sendCompanionSatelliteCommand(`ADD-DEVICE DEVICEID=${self.DEVICEID} PRODUCT_NAME="${productName}" BITMAPS=false COLORS=false TEXT=false`);
+						self.sendCompanionSatelliteCommand(`ADD-DEVICE DEVICEID=${self.DEVICEID} PRODUCT_NAME="${productName}" KEYS_TOTAL=${self.config.maxKeys} BITMAPS=false COLORS=false TEXT=false`);
 					}
 					continue;
 				}
