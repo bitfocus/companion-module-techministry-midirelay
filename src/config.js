@@ -145,7 +145,7 @@ module.exports = {
 				width: 2,
 				default: 32,
 				min: 1,
-				max: 256,
+				max: 1024,
 				isVisible: (config) => config.useAsSurface == true,
 			},
 			{
