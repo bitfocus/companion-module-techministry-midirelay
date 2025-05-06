@@ -152,7 +152,7 @@ module.exports = {
 							//send the satelite surface key press, if needed
 							if (self.config.useAsSurface) {
 								if (midiObj.midicommand == 'noteon' || midiObj.midicommand == 'noteoff') {
-									if (midiObj.note >= self.config.noteOffset && midiObj.note <= self.config.noteOffset + 31) {
+									if (midiObj.note >= self.config.noteOffset && midiObj.note <= self.config.noteOffset + self.config.maxKeys-1) {
 										let keyState = midiObj.midicommand == 'noteon' ? 'true' : 'false';
 										let keyNumber = midiObj.note - self.config.noteOffset; //ok to not add 1, because it it zero based anyway
 										if (self.config.useAllChannelsAsSurfaces) {
