@@ -177,6 +177,19 @@ module.exports = {
 			}
 			else {
 				self.log('debug', 'Using protocol for midi-relay v2');
+				//get /version and if it returns a version, set status to ok
+				let url = 'http://' + self.config.host + ':' + self.config.port + '/version';
+
+				if (self.config.verbose) {
+					self.log('info', 'Sending: ' + url);
+				}
+				axios({method: 'get', url: url}).then(response => {
+					//the response will be just a body text of the version
+					if (response.data) {
+						self.log('info', 'Midi-relay version: ' + response.data);
+						self.updateStatus(InstanceStatus.Ok);
+					}
+				});
 			}
 		}
 	},
