@@ -5,9 +5,9 @@ module.exports = {
 	// #### Define Feedbacks ####
 	// ##########################
 	initFeedbacks: function () {
-		let self = this;
+		let self = this
 
-		let feedbacks = {};
+		let feedbacks = {}
 
 		const foregroundColor = combineRgb(255, 255, 255) // White
 		const backgroundColorRed = combineRgb(255, 0, 0) // Red
@@ -60,7 +60,8 @@ module.exports = {
 					id: 'note',
 					default: 21,
 					choices: this.MIDI_notes,
-					isVisible: (options) => (options.midicommand == 'noteon' || options.midicommand == 'noteoff' || options.midicommand == 'aftertouch')
+					isVisible: (options) =>
+						options.midicommand == 'noteon' || options.midicommand == 'noteoff' || options.midicommand == 'aftertouch',
 				},
 				{
 					type: 'number',
@@ -71,7 +72,7 @@ module.exports = {
 					max: 127,
 					required: true,
 					range: false,
-					isVisible: (options) => (options.midicommand == 'noteon' || options.midicommand == 'noteoff')
+					isVisible: (options) => options.midicommand == 'noteon' || options.midicommand == 'noteoff',
 				},
 				{
 					type: 'number',
@@ -82,7 +83,11 @@ module.exports = {
 					max: 127,
 					required: true,
 					range: false,
-					isVisible: (options) => (options.midicommand == 'cc' || options.midicommand == 'pc' || options.midicommand == 'pitchbend' || options.midicommand == 'aftertouch')
+					isVisible: (options) =>
+						options.midicommand == 'cc' ||
+						options.midicommand == 'pc' ||
+						options.midicommand == 'pitchbend' ||
+						options.midicommand == 'aftertouch',
 				},
 				{
 					type: 'dropdown',
@@ -90,45 +95,45 @@ module.exports = {
 					id: 'controller',
 					default: 0,
 					choices: this.MIDI_controllers,
-					isVisible: (options) => (options.midicommand == 'cc')
+					isVisible: (options) => options.midicommand == 'cc',
 				},
 				{
 					type: 'textinput',
 					label: 'MIDI Raw',
 					id: 'midiraw',
 					default: '',
-					isVisible: (options) => (options.midicommand == 'sysex')
+					isVisible: (options) => options.midicommand == 'sysex',
 				},
 			],
 			callback: function (feedback, bank) {
-				let opt = feedback.options;
+				let opt = feedback.options
 				if (self.midiObj) {
-					let channel = opt.midichannel - 1;
+					let channel = opt.midichannel - 1
 
-					if (self.midiObj.midiport == opt.midiport && self.midiObj.midicommand == opt.midicommand && self.midiObj.channel == channel) {	
+					if (
+						self.midiObj.midiport == opt.midiport &&
+						self.midiObj.midicommand == opt.midicommand &&
+						self.midiObj.channel == channel
+					) {
 						if (opt.midicommand == 'noteon' || opt.midicommand == 'noteoff') {
 							if (self.midiObj.note == opt.note && self.midiObj.velocity == opt.velocity) {
-								return true;
+								return true
 							}
-						}
-						else if (opt.midicommand == 'aftertouch') {
+						} else if (opt.midicommand == 'aftertouch') {
 							if (self.midiObj.note == opt.note && self.midiObj.value == opt.value) {
-								return true;
+								return true
 							}
-						}
-						else if (opt.midicommand == 'cc') {
+						} else if (opt.midicommand == 'cc') {
 							if (self.midiObj.controller == opt.controller && self.midiObj.value == opt.value) {
-								return true;
+								return true
 							}
-						}
-						else if (opt.midicommand == 'pc' || opt.midicommand == 'pressure' || opt.midicommand == 'pitchbend') {
+						} else if (opt.midicommand == 'pc' || opt.midicommand == 'pressure' || opt.midicommand == 'pitchbend') {
 							if (self.midiObj.value == opt.value) {
-								return true;
+								return true
 							}
-						}
-						else if (opt.midicommand == 'sysex') {
+						} else if (opt.midicommand == 'sysex') {
 							if (self.midiObj.midiraw == opt.midiraw) {
-								return true;
+								return true
 							}
 						}
 					}
@@ -138,6 +143,6 @@ module.exports = {
 			},
 		}
 
-		this.setFeedbackDefinitions(feedbacks);
-	}
+		this.setFeedbackDefinitions(feedbacks)
+	},
 }

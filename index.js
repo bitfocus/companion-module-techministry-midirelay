@@ -26,7 +26,7 @@ class midirelayInstance extends InstanceBase {
 			...presets,
 			...constants,
 			...api,
-			...surface
+			...surface,
 		})
 
 		this.STATUS = {
@@ -43,26 +43,22 @@ class midirelayInstance extends InstanceBase {
 			lastMidiVelocity: '',
 			lastMidiValue: '',
 			lastMidiController: '', //the friendly name like Modulation Wheel (MSB)
-			lastMidiRaw: ''
-		};
+			lastMidiRaw: '',
+		}
 
-		this.MIDI_outputs = [];
-		this.MIDI_outputs_list = [
-			{id: '0', label: '(Select a MIDI Port)'}
-		];
+		this.MIDI_outputs = []
+		this.MIDI_outputs_list = [{ id: '0', label: '(Select a MIDI Port)' }]
 
-		this.MIDI_inputs = [];
-		this.MIDI_inputs_list = [
-			{id: '0', label: '(No MIDI inputs loaded)'}
-		];
+		this.MIDI_inputs = []
+		this.MIDI_inputs_list = [{ id: '0', label: '(No MIDI inputs loaded)' }]
 	}
 
 	async destroy() {
 		if (this.socket !== undefined) {
-			this.socket.disconnect();
+			this.socket.disconnect()
 		}
 
-		this.CompanionSatellite_Close();
+		this.CompanionSatellite_Close()
 	}
 
 	async init(config) {
@@ -74,50 +70,49 @@ class midirelayInstance extends InstanceBase {
 		this.config = config
 
 		if (this.config.verbose) {
-			this.log('info', 'Verbose mode enabled. Log entries will contain detailed information.');
+			this.log('info', 'Verbose mode enabled. Log entries will contain detailed information.')
 		}
 
-		let listObj = {};
+		let listObj = {}
 		//build MIDI Show Control Device ID list
 		for (let i = 0; i < 112; i++) {
-			listObj = {};
-			listObj.id = i;
-			listObj.label = i + '';
-			this.MSC_deviceid.push(listObj);
+			listObj = {}
+			listObj.id = i
+			listObj.label = i + ''
+			this.MSC_deviceid.push(listObj)
 		}
 		for (let i = 1; i < 16; i++) {
-			listObj = {};
-			listObj.id = 'g' + i;
-			listObj.label = 'Group ' + i;
-			this.MSC_deviceid.push(listObj);
+			listObj = {}
+			listObj.id = 'g' + i
+			listObj.label = 'Group ' + i
+			this.MSC_deviceid.push(listObj)
 		}
-		listObj = {};
-		listObj.id = 'all';
-		listObj.label = 'All Devices';
-		this.MSC_deviceid.push(listObj);
-	
+		listObj = {}
+		listObj.id = 'all'
+		listObj.label = 'All Devices'
+		this.MSC_deviceid.push(listObj)
+
 		this.updateStatus(InstanceStatus.Connecting)
-	
-		this.initConnection();
+
+		this.initConnection()
 
 		if (this.config.useAsSurface) {
-			this.initSurface();
+			this.initSurface()
 		}
-	
-		this.initActions();
-		this.initFeedbacks();
+
+		this.initActions()
+		this.initFeedbacks()
 
 		if (this.config.protocol == '3') {
-			this.initVariables();
-		}
-		else {
+			this.initVariables()
+		} else {
 			//version 2 doesn't have any variables as it is basically just a send and forget
 		}
 
-		this.initPresets();
-	
-		this.checkFeedbacks();
-		this.checkVariables();
+		this.initPresets()
+
+		this.checkFeedbacks()
+		this.checkVariables()
 	}
 }
 

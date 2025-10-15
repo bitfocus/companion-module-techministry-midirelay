@@ -21,10 +21,6 @@
 		"entrypoint": "../index.js"
 	},
 	"manufacturer": "Tech Ministry",
-	"products": [
-		"MIDI Relay"
-	],
-	"keywords": [
-		"MIDI Relay"
-	]
+	"products": ["MIDI Relay"],
+	"keywords": ["MIDI Relay"]
 }

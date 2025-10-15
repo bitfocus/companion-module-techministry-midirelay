@@ -26,7 +26,7 @@ module.exports = {
 							</ul>
 						</div>
 					</div>
-				`
+				`,
 			},
 			{
 				type: 'textinput',
@@ -34,7 +34,7 @@ module.exports = {
 				label: 'midi-relay IP Address',
 				width: 3,
 				default: '127.0.0.1',
-				regex: Regex.IP
+				regex: Regex.IP,
 			},
 			{
 				type: 'textinput',
@@ -42,7 +42,7 @@ module.exports = {
 				label: 'midi-relay Listening Port',
 				width: 3,
 				default: 4000,
-				regex: Regex.Port
+				regex: Regex.Port,
 			},
 			{
 				type: 'dropdown',
@@ -52,7 +52,7 @@ module.exports = {
 				default: '3',
 				choices: [
 					{ id: '2', label: 'midi-relay 2.x or less' },
-					{ id: '3', label: 'mid-relay 3.x or greater' }
+					{ id: '3', label: 'mid-relay 3.x or greater' },
 				],
 			},
 			{
@@ -61,7 +61,7 @@ module.exports = {
 				default: false,
 				label: 'Use MIDI Feedback',
 				width: 2,
-				isVisible: (config) => config.protocol == '3'
+				isVisible: (config) => config.protocol == '3',
 			},
 			{
 				type: 'dropdown',
@@ -70,14 +70,14 @@ module.exports = {
 				width: 6,
 				default: this.MIDI_inputs_list[0].id,
 				choices: this.MIDI_inputs_list,
-				isVisible: (config) => config.useMidiFeedback == true
+				isVisible: (config) => config.useMidiFeedback == true,
 			},
 			{
 				type: 'checkbox',
 				id: 'ignoreMidiChannels',
 				label: 'Ignore MIDI Channels',
 				default: 2,
-				isVisible: (config) => config.useMidiFeedback == true
+				isVisible: (config) => config.useMidiFeedback == true,
 			},
 			{
 				type: 'textinput',
@@ -87,21 +87,22 @@ module.exports = {
 				default: 1,
 				min: 1,
 				max: 16,
-				isVisible: (config) => config.ignoreMidiChannels == false
+				isVisible: (config) => config.ignoreMidiChannels == false,
 			},
 			{
 				type: 'static-text',
 				id: 'midiInputsNone',
-				label: 'No MIDI Inputs detected yet - please wait for midi-relay to connect and then return to this config page to select a port.',
+				label:
+					'No MIDI Inputs detected yet - please wait for midi-relay to connect and then return to this config page to select a port.',
 				width: 12,
-				isVisible: (config) => config.midiPort == '0'
+				isVisible: (config) => config.midiPort == '0',
 			},
 			{
 				type: 'static-text',
 				id: 'midiInputsSelect',
 				label: 'Select a MIDI input from the list to receive MIDI data back from midi-relay.',
 				width: 12,
-				isVisible: (config) => config.useMidiFeedback == true && config.midiPort == 'select'
+				isVisible: (config) => config.useMidiFeedback == true && config.midiPort == 'select',
 			},
 			{
 				type: 'static-text',
@@ -114,10 +115,11 @@ module.exports = {
 				type: 'checkbox',
 				id: 'useAsSurface',
 				label: 'Use MIDI Feedback as a Companion Satellite Surface',
-				tooltip: 'With this option, the first keys of the channel starting at the note offset will be automatically assigned as surface keys. NoteOn at any velocity will trigger the key, and NoteOff will release it.',
+				tooltip:
+					'With this option, the first keys of the channel starting at the note offset will be automatically assigned as surface keys. NoteOn at any velocity will trigger the key, and NoteOff will release it.',
 				width: 2,
 				default: false,
-				isVisible: (config) => config.useMidiFeedback == true
+				isVisible: (config) => config.useMidiFeedback == true,
 			},
 			{
 				type: 'checkbox',
@@ -164,14 +166,14 @@ module.exports = {
 					<div class="alert alert-info">
 						Enabling this option will put more detail in the log, which can be useful for troubleshooting purposes.
 					</div>
-				`
+				`,
 			},
 			{
 				type: 'checkbox',
 				id: 'verbose',
 				label: 'Enable Verbose Logging',
-				default: false
+				default: false,
 			},
 		]
-	}
+	},
 }

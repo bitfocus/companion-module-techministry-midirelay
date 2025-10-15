@@ -1,31 +1,31 @@
 function getValidChannel(channel) {
 	//make sure it is a valid channel option in case the user used a variable
-	channel = parseInt(channel);
+	channel = parseInt(channel)
 	if (channel < 1 || channel > 16) {
-		channel = 1;
+		channel = 1
 	}
 
-	return channel;
+	return channel
 }
 
 function getValidNote(note) {
-	note = parseInt(note);
+	note = parseInt(note)
 	//now make sure it is a valid note option from the dropdown values
 	if (note < 0 || note > 127) {
-		note = 21;
+		note = 21
 	}
 
-	return note;
+	return note
 }
 
 function getValidValue(value) {
 	//now make sure it is a valid velocity option from the dropdown values
-	value = parseInt(value);
+	value = parseInt(value)
 	if (value < 0 || value > 127) {
-		value = 100;
+		value = 100
 	}
 
-	return value;
+	return value
 }
 
 module.exports = {
@@ -33,8 +33,8 @@ module.exports = {
 	// #### Instance Actions ####
 	// ##########################
 	initActions: function () {
-		let self = this;
-		let actions = {};
+		let self = this
+		let actions = {}
 
 		actions.midi_noteon = {
 			name: 'Send Note On',
@@ -46,7 +46,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -68,26 +68,26 @@ module.exports = {
 					label: 'Velocity',
 					id: 'velocity',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let note = getValidNote(await this.parseVariablesInString(event.options.note));
-				let velocity = getValidValue(await this.parseVariablesInString(event.options.velocity));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let note = getValidNote(await this.parseVariablesInString(event.options.note))
+				let velocity = getValidValue(await this.parseVariablesInString(event.options.velocity))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'noteon',
-					channel: (channel-1), //channels are zero-based in midi-relay
+					channel: channel - 1, //channels are zero-based in midi-relay
 					note: note,
-					velocity: velocity
-				};
+					velocity: velocity,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
-	
+
 		actions.midi_noteoff = {
 			name: 'Send Note Off',
 			options: [
@@ -98,7 +98,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -120,24 +120,24 @@ module.exports = {
 					label: 'Velocity',
 					id: 'velocity',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let note = getValidNote(await this.parseVariablesInString(event.options.note));
-				let velocity = getValidValue(await this.parseVariablesInString(event.options.velocity));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let note = getValidNote(await this.parseVariablesInString(event.options.note))
+				let velocity = getValidValue(await this.parseVariablesInString(event.options.velocity))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'noteoff',
-					channel: (channel-1), //channels are zero-based in midi-relay
+					channel: channel - 1, //channels are zero-based in midi-relay
 					note: note,
-					velocity: velocity
-				};
+					velocity: velocity,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.aftertouch = {
@@ -150,7 +150,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -172,24 +172,24 @@ module.exports = {
 					label: 'Value',
 					id: 'value',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let note = getValidNote(await this.parseVariablesInString(event.options.note));
-				let value = getValidValue(await this.parseVariablesInString(event.options.value));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let note = getValidNote(await this.parseVariablesInString(event.options.note))
+				let value = getValidValue(await this.parseVariablesInString(event.options.value))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'aftertouch',
-					channel: (channel-1), //channels are zero-based in midi-relay
+					channel: channel - 1, //channels are zero-based in midi-relay
 					note: note,
-					value: value
-				};
+					value: value,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.cc = {
@@ -202,7 +202,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -224,24 +224,24 @@ module.exports = {
 					label: 'Value',
 					id: 'value',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let controller = getValidValue(await this.parseVariablesInString(event.options.controller));
-				let value = getValidValue(await this.parseVariablesInString(event.options.value));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let controller = getValidValue(await this.parseVariablesInString(event.options.controller))
+				let value = getValidValue(await this.parseVariablesInString(event.options.value))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'cc',
-					channel: (channel-1), //channels are zero-based in midi-relay
+					channel: channel - 1, //channels are zero-based in midi-relay
 					controller: controller,
-					value: value
-				};
+					value: value,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.pc = {
@@ -254,7 +254,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -268,22 +268,22 @@ module.exports = {
 					label: 'Value',
 					id: 'value',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let value = getValidValue(await this.parseVariablesInString(event.options.value));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let value = getValidValue(await this.parseVariablesInString(event.options.value))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'pc',
-					channel: (channel-1), //channels are zero-based in midi-relay
-					value: value
-				};
+					channel: channel - 1, //channels are zero-based in midi-relay
+					value: value,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.pressure = {
@@ -296,7 +296,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -310,22 +310,22 @@ module.exports = {
 					label: 'Value',
 					id: 'value',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let value = getValidValue(await this.parseVariablesInString(event.options.value));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let value = getValidValue(await this.parseVariablesInString(event.options.value))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'pressure',
-					channel: (channel-1), //channels are zero-based in midi-relay
-					value: value
-				};
+					channel: channel - 1, //channels are zero-based in midi-relay
+					value: value,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.pitchbend = {
@@ -337,7 +337,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
@@ -351,22 +351,22 @@ module.exports = {
 					label: 'Value',
 					id: 'value',
 					default: '100',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel));
-				let value = getValidValue(await this.parseVariablesInString(event.options.value));
+				let channel = getValidChannel(await this.parseVariablesInString(event.options.channel))
+				let value = getValidValue(await this.parseVariablesInString(event.options.value))
 
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'pitchbend',
-					channel: (channel-1), //channels are zero-based in midi-relay
-					value: value
-				};
+					channel: channel - 1, //channels are zero-based in midi-relay
+					value: value,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.msc_command = {
@@ -379,7 +379,7 @@ module.exports = {
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
 					allowCustom: true,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'dropdown',
@@ -388,7 +388,7 @@ module.exports = {
 					choices: this.MSC_deviceid,
 					default: this.MSC_deviceid[0].id,
 					tooltip: 'Device ID to target.',
-					allowCustom: true
+					allowCustom: true,
 				},
 				{
 					type: 'dropdown',
@@ -396,7 +396,7 @@ module.exports = {
 					id: 'commandformat',
 					choices: this.MSC_commandformat,
 					default: this.MSC_commandformat[0].id,
-					allowCustom: true
+					allowCustom: true,
 				},
 				{
 					type: 'dropdown',
@@ -404,51 +404,51 @@ module.exports = {
 					id: 'command',
 					choices: this.MSC_command,
 					default: this.MSC_command[0].id,
-					allowCustom: true
+					allowCustom: true,
 				},
 				{
 					type: 'textinput',
 					label: 'Cue (optional)',
 					id: 'cue',
 					default: '',
-					useVariables: true
+					useVariables: true,
 				},
 				{
 					type: 'textinput',
 					label: 'Cue List (optional)',
 					id: 'cuelist',
 					default: '',
-					useVariables: true
+					useVariables: true,
 				},
 				{
 					type: 'textinput',
 					label: 'Cue Path (optional)',
 					id: 'cuepath',
 					default: '',
-					useVariables: true
-				}
+					useVariables: true,
+				},
 			],
 			callback: async (event) => {
-				let deviceid = await this.parseVariablesInString(event.options.deviceid);
-				let commandformat = await this.parseVariablesInString(event.options.commandformat);
-				let command = await this.parseVariablesInString(event.options.command);
-				let cue = await this.parseVariablesInString(event.options.cue);
-				let cuelist = await this.parseVariablesInString(event.options.cuelist);
-				let cuepath = await this.parseVariablesInString(event.options.cuepath);
+				let deviceid = await this.parseVariablesInString(event.options.deviceid)
+				let commandformat = await this.parseVariablesInString(event.options.commandformat)
+				let command = await this.parseVariablesInString(event.options.command)
+				let cue = await this.parseVariablesInString(event.options.cue)
+				let cuelist = await this.parseVariablesInString(event.options.cuelist)
+				let cuepath = await this.parseVariablesInString(event.options.cuepath)
 
 				midiObj = {
-					midiport: event.options.midiport, 
-					midicommand: 'msc', 
-					deviceid: deviceid, 
-					commandformat: commandformat, 
-					command: command, 
+					midiport: event.options.midiport,
+					midicommand: 'msc',
+					deviceid: deviceid,
+					commandformat: commandformat,
+					command: command,
 					cue: cue,
 					cuelist: cuelist,
-					cuepath: cuepath
-				};
+					cuepath: cuepath,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.sysex = {
@@ -460,38 +460,36 @@ module.exports = {
 					id: 'midiport',
 					choices: this.MIDI_outputs_list,
 					default: this.MIDI_outputs_list[0].id,
-					tooltip: 'MIDI Port to control.'
+					tooltip: 'MIDI Port to control.',
 				},
 				{
 					type: 'textinput',
 					label: 'SysEx MIDI Message in hexadecimal or decimal, separated by spaces or commas',
 					id: 'message',
-					default: '0'
-				}
+					default: '0',
+				},
 			],
 			callback: async (event) => {
 				midiObj = {
 					midiport: event.options.midiport,
 					midicommand: 'sysex',
-					message: event.options.message
-				};
+					message: event.options.message,
+				}
 
-				this.sendCommand('sendmidi', midiObj);
-			}
+				this.sendCommand('sendmidi', midiObj)
+			},
 		}
 
 		actions.refresh = {
 			name: 'Refresh MIDI Ports',
 			options: [],
 			callback: async (event) => {
-				midiObj = {
-					
-				};
+				midiObj = {}
 
-				this.sendCommand('refresh', midiObj);
-			}
+				this.sendCommand('refresh', midiObj)
+			},
 		}
-		
-		this.setActionDefinitions(actions);
-	}
+
+		this.setActionDefinitions(actions)
+	},
 }
