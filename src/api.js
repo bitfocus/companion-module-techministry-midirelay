@@ -239,8 +239,7 @@ module.exports = {
 			if (arg1 !== null && arg1 !== undefined) {
 				if (arg1 && typeof arg1 !== 'object') {
 					url += '/' + arg1
-				}
-				else {
+				} else {
 					shouldPost = true
 				}
 			}
@@ -255,39 +254,43 @@ module.exports = {
 			}
 
 			if (shouldPost) {
-				axios({ method: 'post', url: url, data: arg1 }).then((response) => {
-					self.log('info', 'Response: ' + JSON.stringify(response.data))
-				}).catch((error) => {
-					self.log('error', 'Error: ' + error)
-				})
+				axios({ method: 'post', url: url, data: arg1 })
+					.then((response) => {
+						self.log('info', 'Response: ' + JSON.stringify(response.data))
+					})
+					.catch((error) => {
+						self.log('error', 'Error: ' + error)
+					})
 			} else {
-				axios({ method: 'get', url: url }).then((response) => {
-					self.log('info', 'Response: ' + JSON.stringify(response.data))
-					// Handle the response data here
-					//if cmd was "midi_outputs", store outputs
-					if (cmd == 'version') {
-						if (response.data) {
-							self.log('info', 'Midi-relay version: ' + response.data)
-							self.updateStatus(InstanceStatus.Ok)
+				axios({ method: 'get', url: url })
+					.then((response) => {
+						self.log('info', 'Response: ' + JSON.stringify(response.data))
+						// Handle the response data here
+						//if cmd was "midi_outputs", store outputs
+						if (cmd == 'version') {
+							if (response.data) {
+								self.log('info', 'Midi-relay version: ' + response.data)
+								self.updateStatus(InstanceStatus.Ok)
+							}
+							return
 						}
-						return
-					}
-					if (cmd == "midi_outputs") {
-						let midi_outputs = response.data
-						self.log('debug', 'midi_outputs: ' + JSON.stringify(midi_outputs))
-						let outputsList = []
-						for (let i = 0; i < midi_outputs.length; i++) {
-							outputsList.push({ id: midi_outputs[i].name, label: `${midi_outputs[i].name}` })
+						if (cmd == 'midi_outputs') {
+							let midi_outputs = response.data
+							self.log('debug', 'midi_outputs: ' + JSON.stringify(midi_outputs))
+							let outputsList = []
+							for (let i = 0; i < midi_outputs.length; i++) {
+								outputsList.push({ id: midi_outputs[i].name, label: `${midi_outputs[i].name}` })
+							}
+							self.MIDI_outputs = midi_outputs
+							self.MIDI_outputs_list = outputsList
+							self.initActions()
+							self.checkVariables()
+							return
 						}
-						self.MIDI_outputs = midi_outputs
-						self.MIDI_outputs_list = outputsList
-						self.initActions()
-						self.checkVariables()
-						return
-					}
-				}).catch((error) => {
-					self.log('error', 'Error: ' + error)
-				})
+					})
+					.catch((error) => {
+						self.log('error', 'Error: ' + error)
+					})
 			}
 		}
 	},
