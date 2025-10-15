@@ -39,6 +39,7 @@ module.exports = {
 				});
 
 				self.socket.on('midi_outputs', function(midi_outputs) {
+					self.log('debug', 'midi_outputs: ' + JSON.stringify(midi_outputs));
 					let outputsList = []
 					for (let i = 0; i < midi_outputs.length; i++) {
 						outputsList.push({ id: midi_outputs[i].name, label: `${midi_outputs[i].name}` });
@@ -121,7 +122,7 @@ module.exports = {
 									break;
 								case 'cc':
 									self.STATUS.lastMidiMessageType = 'Control Change';
-									self.STATUS.lastMidiController =self.MIDI_controllers.find(({ id }) => id === midiObj.controller).label || '';
+									self.STATUS.lastMidiController = self.MIDI_controllers.find(({ id }) => id === midiObj.controller).label || '';
 									self.STATUS.lastMidiValue = midiObj.value;
 									break;
 								case 'pc':
@@ -157,7 +158,7 @@ module.exports = {
 										let keyNumber = midiObj.note - self.config.noteOffset; //ok to not add 1, because it it zero based anyway
 										if (self.config.useAllChannelsAsSurfaces) {
 											//send the key press to the appropriate surface based on the channel
-											self.sendCompanionSatelliteCommand(`KEY-PRESS DEVICEID=${self.DEVICEID}-ch${channel.toString().padStart(2, '0')} KEY=${keyNumber} PRESSED=${keyState}`);
+											self.sendCompanionSatelliteCommand(`KEY-PRESS DEVICEID=${self.DEVICEID}-ch${midiObj.channel.toString().padStart(2, '0')} KEY=${keyNumber} PRESSED=${keyState}`);
 										}
 										else {
 											self.sendCompanionSatelliteCommand(`KEY-PRESS DEVICEID=${self.DEVICEID} KEY=${keyNumber} PRESSED=${keyState}`);
