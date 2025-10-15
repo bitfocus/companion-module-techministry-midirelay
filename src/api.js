@@ -189,13 +189,8 @@ module.exports = {
 				if (self.config.verbose) {
 					self.log('info', 'Sending: ' + url)
 				}
-				axios({ method: 'get', url: url }).then((response) => {
-					//the response will be just a body text of the version
-					if (response.data) {
-						self.log('info', 'Midi-relay version: ' + response.data)
-						self.updateStatus(InstanceStatus.Ok)
-					}
-				})
+				self.sendCommand('version')
+				self.sendCommand('midi_outputs')
 			}
 		}
 	},
@@ -237,16 +232,63 @@ module.exports = {
 			//use the old REST API
 			let self = this
 			let url = 'http://' + self.config.host + ':' + self.config.port + '/' + cmd
-			if (arg1 !== null) {
-				url += '/' + arg1
+
+			let shouldPost = false
+
+			//if arg1 is an object, we want to do a post, but if it's a string, it goes in the url
+			if (arg1 !== null && arg1 !== undefined) {
+				if (arg1 && typeof arg1 !== 'object') {
+					url += '/' + arg1
+				}
+				else {
+					shouldPost = true
+				}
 			}
-			if (arg2 !== null) {
+
+			if (arg2 !== null && arg2 !== undefined && typeof arg2 !== 'object') {
 				url += '/' + arg2
 			}
+
 			if (self.config.verbose) {
 				self.log('info', 'Sending: ' + url)
+				self.log('info', 'Via ' + shouldPost ? 'POST' : 'GET')
 			}
-			axios({ method: 'post', url: url, data: arg1 })
+
+			if (shouldPost) {
+				axios({ method: 'post', url: url, data: arg1 }).then((response) => {
+					self.log('info', 'Response: ' + JSON.stringify(response.data))
+				}).catch((error) => {
+					self.log('error', 'Error: ' + error)
+				})
+			} else {
+				axios({ method: 'get', url: url }).then((response) => {
+					self.log('info', 'Response: ' + JSON.stringify(response.data))
+					// Handle the response data here
+					//if cmd was "midi_outputs", store outputs
+					if (cmd == 'version') {
+						if (response.data) {
+							self.log('info', 'Midi-relay version: ' + response.data)
+							self.updateStatus(InstanceStatus.Ok)
+						}
+						return
+					}
+					if (cmd == "midi_outputs") {
+						let midi_outputs = response.data
+						self.log('debug', 'midi_outputs: ' + JSON.stringify(midi_outputs))
+						let outputsList = []
+						for (let i = 0; i < midi_outputs.length; i++) {
+							outputsList.push({ id: midi_outputs[i].name, label: `${midi_outputs[i].name}` })
+						}
+						self.MIDI_outputs = midi_outputs
+						self.MIDI_outputs_list = outputsList
+						self.initActions()
+						self.checkVariables()
+						return
+					}
+				}).catch((error) => {
+					self.log('error', 'Error: ' + error)
+				})
+			}
 		}
 	},
 }
