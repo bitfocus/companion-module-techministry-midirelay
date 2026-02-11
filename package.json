@@ -13,7 +13,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"@companion-module/base": "~1.4.1",
-		"axios": "^1.12.0",
+		"axios": "^1.13.5",
 		"socket.io": "^4.6.2",
 		"socket.io-client": "^4.6.1"
 	},
